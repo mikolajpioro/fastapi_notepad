@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+
+    <head>{{ title }}
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    </head>
+
+    <body>
+        <div class="notes_section">
+            <h2>DO THESE THINGS:</h2>
+            {% for note in notes %}
+                <div class="note_card">
+                    <a class="note_title" href="#">{{ note.title }}</a>
+                    <p class="note_content">{{ note.content }}</p>
+                    <p class="note_date">{{ note.date_posted.strftime('%b %d, %Y') }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </body>
+</html>
