@@ -9,12 +9,43 @@ body{
 .notes_section{
     font-family: Verdana;
     font-weight: bold;
-    width: auto;
+    width: 550px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     background-color: rgb(158, 68, 43);
     border-radius: 10px;
     padding: 5px;
     margin-top: 5%;
+}
+
+.note_card{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(74, 93, 78);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 3px;
+    height: auto;
+    max-width: 400px;
+}
+
+.note_date{
+    margin: 0;
+    font-size: 12px;
+}
+
+.note_title{
+    font-size: 25px;
+    text-decoration: underline;
+    color: rgb(220, 80, 43);
+}
+
+.note_content{
+    white-space: initial;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
