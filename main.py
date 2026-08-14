@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, status
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 # model imports-------
@@ -23,7 +24,7 @@ templates = Jinja2Templates(directory='templates')
 
 @app.get("/", include_in_schema=False, name="Home")
 @app.get("notes", include_in_schema=False, name="Notes")
-def home_page(request: Request, db:Annotated[Session, Depends(get_db)]):
+def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.Note))
     notes = result.scalars().all()
 
@@ -32,3 +33,24 @@ def home_page(request: Request, db:Annotated[Session, Depends(get_db)]):
 # add single note page
 # add single note page
 # add single note page
+
+@app.get("/api/notes", response_model=list[NoteResponse])
+def get_notes(db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Note))
+    notes = result.scalars().all()
+    return notes
+
+
+
+@app.post("/api/notes", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
+def create_note(note: NoteCreate, db: Annotated[Session, Depends(get_db)]):
+
+    new_note = models.Note(
+        title=note.title,
+        content=note.content
+    )
+
+    db.add(new_note)
+    db.commit()
+    db.refresh(new_note)
+    return new_note
