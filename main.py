@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request, Depends, status
+from fastapi import FastAPI, Request, Depends, status, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -40,11 +40,19 @@ def get_notes(db: Annotated[Session, Depends(get_db)]):
     notes = result.scalars().all()
     return notes
 
-
+@app.get("/api/notes/{note_id}", response_model=NoteResponse)
+def get_note(note_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Note).where(models.Note.id == note_id))
+    note = result.scalars().first()
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found"
+        )
+    return note
 
 @app.post("/api/notes", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
 def create_note(note: NoteCreate, db: Annotated[Session, Depends(get_db)]):
-
     new_note = models.Note(
         title=note.title,
         content=note.content
@@ -54,3 +62,22 @@ def create_note(note: NoteCreate, db: Annotated[Session, Depends(get_db)]):
     db.commit()
     db.refresh(new_note)
     return new_note
+
+@app.put("/api/notes/{note_id}", response_model=NoteResponse)
+def update_note(note_id: int, updated: NoteUpdate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Note).where(models.Note.id == note_id))
+    note = result.scalars().first()
+
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not not found"
+        )
+
+    note.title = updated.title
+    note.content = updated.content
+
+    db.commit()
+    db.refresh(note)
+    return note
+
