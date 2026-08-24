@@ -23,7 +23,7 @@ app.mount("/static", StaticFiles(directory='static'), name='static')
 templates = Jinja2Templates(directory='templates')
 
 @app.get("/", include_in_schema=False, name="Home")
-@app.get("notes", include_in_schema=False, name="Notes")
+@app.get("/notes", include_in_schema=False, name="Notes")
 def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.Note))
     notes = result.scalars().all()
@@ -33,6 +33,20 @@ def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
 # add single note page
 # add single note page
 # add single note page
+
+@app.get("/notes/{note_id}", include_in_schema=False, name="note_page")
+def note_page(request: Request, note_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = (db.execute(select(models.Note).where(models.Note.id == note_id)))
+    note = result.scalars().first()
+
+    if note:
+        title = f"{note.title}"
+        return templates.TemplateResponse(request, "note.html", {"note": note, "title": title})
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found"
+        )
 
 @app.get("/api/notes", response_model=list[NoteResponse])
 def get_notes(db: Annotated[Session, Depends(get_db)]):
