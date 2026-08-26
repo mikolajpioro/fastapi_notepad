@@ -14,5 +14,5 @@ class NoteResponse(NoteBase):
     date_posted: datetime
 
 class NoteUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1)
-    content: str | None = Field(default=None, min_length=1)
+    title: str | None = Field(default=None, min_length=1, examples=["Update the title here"])
+    content: str | None = Field(default=None, min_length=1, examples=["Update the content here"])

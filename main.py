@@ -30,10 +30,6 @@ def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
 
     return templates.TemplateResponse(request, "home.html", {"notes": notes, "title": "Notepad"})
 
-# add single note page
-# add single note page
-# add single note page
-
 @app.get("/notes/{note_id}", include_in_schema=False, name="note_page")
 def note_page(request: Request, note_id: int, db: Annotated[Session, Depends(get_db)]):
     result = (db.execute(select(models.Note).where(models.Note.id == note_id)))
@@ -95,3 +91,22 @@ def update_note(note_id: int, updated: NoteUpdate, db: Annotated[Session, Depend
     db.refresh(note)
     return note
 
+@app.patch("/api/notes/{note_id}", response_model=NoteResponse)
+def update_note_partial(note_id: int, updated: NoteUpdate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Note).where(models.Note.id == note_id))
+    note = result.scalars().first()
+
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found"
+        )
+
+    updated_data = updated.model_dump(exclude_unset=True)
+
+    for field, value in updated_data.items():
+        setattr(note, field, value)
+
+    db.commit()
+    db.refresh(note)
+    return note
