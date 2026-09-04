@@ -104,8 +104,12 @@ def update_note_partial(note_id: int, updated: NoteUpdate, db: Annotated[Session
 
     updated_data = updated.model_dump(exclude_unset=True)
 
-    for field, value in updated_data.items():
-        setattr(note, field, value)
+    if updated_data.title != note.title:
+        note.title = updated.title
+    if updated_data.content != note.content:
+        note.content = updated.content
+
+    # nwm czy to działa ^
 
     db.commit()
     db.refresh(note)
