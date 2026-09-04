@@ -104,13 +104,26 @@ def update_note_partial(note_id: int, updated: NoteUpdate, db: Annotated[Session
 
     updated_data = updated.model_dump(exclude_unset=True)
 
-    if updated_data.title != note.title:
-        note.title = updated.title
-    if updated_data.content != note.content:
-        note.content = updated.content
+    if "title" in updated_data:
+        note.title = updated_data["title"]
 
-    # nwm czy to działa ^
+    if "content" in updated_data:
+        note.content = updated_data["content"]
 
     db.commit()
     db.refresh(note)
     return note
+
+@app.delete("/api/notes/{note_id}", response_model=NoteResponse)
+def delete_note(note_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Note).where(models.Note.id == note_id))
+    note = result.scalars().first()
+
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note not found"
+        )
+
+    db.delete(note)
+    db.commit()
